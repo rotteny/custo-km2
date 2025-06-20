@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const btnSalvar = document.getElementById('btnSalvar');
-    const btnCarregar = document.getElementById('btnCarregar');
 
     // Estado inicial do sistema (valores padrão)
     // Estes são os valores DEFAULTS se não houver nada salvo
@@ -230,7 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     btnSalvar.addEventListener('click', salvarDados);
-    btnCarregar.addEventListener('click', carregarDados);
 
     // Carrega os dados ao iniciar a página ou renderiza os padrões
     carregarDados();
