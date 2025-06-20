@@ -6,14 +6,14 @@ document.addEventListener('DOMContentLoaded', () => {
         valorVeiculo: document.getElementById('valorVeiculo'),
         depreciacao: document.getElementById('depreciacao'),
         financiamento: document.getElementById('financiamento'),
-        lucroEsperado: document.getElementById('lucroEsperado'), // ID no HTML
-        licenciamentoAnual: document.getElementById('licenciamentoAnual'), // ID no HTML
-        seguroAnual: document.getElementById('seguroAnual'),         // ID no HTML
+        lucroEsperado: document.getElementById('lucroEsperado'),
+        licenciamentoAnual: document.getElementById('licenciamentoAnual'),
+        seguroAnual: document.getElementById('seguroAnual'),
         custoPneus: document.getElementById('custoPneus'),
         vidaUtilPneus: document.getElementById('vidaUtilPneus'),
         custoOleo: document.getElementById('custoOleo'),
         frequenciaOleo: document.getElementById('frequenciaOleo'),
-        manutencaoAnual: document.getElementById('manutencaoAnual'), // ID no HTML
+        manutencaoAnual: document.getElementById('manutencaoAnual'),
         valorCombustivel: document.getElementById('valorCombustivel'),
         consumoCombustivel: document.getElementById('consumoCombustivel'),
         custoTotalKm: document.getElementById('custoTotalKm'),
@@ -23,29 +23,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCarregar = document.getElementById('btnCarregar');
 
     // Estado inicial do sistema (valores padrão)
-    let automovel = {
+    // Estes são os valores DEFAULTS se não houver nada salvo
+    let automovelDefault = {
         km_mes: 5000,
         valor: 50000,
         depreciacao: 12, // %
         financiamento: 0,
-        lucro: 4000, // Propriedade usada no JS
-        licenciamento: 1300, // Propriedade usada no JS
-        seguro: 2000, // Propriedade usada no JS
+        lucro: 4000,
+        licenciamento: 1300,
+        seguro: 2000,
         pneus_custo: 2500, // Custo do conjunto de pneus
         pneus_vida: 50000, // Km
         oleo_custo: 400,
         oleo_frequencia: 10000, // Km
-        outros: 3000, // Manutenção anual (propriedade 'outros' no JS)
+        outros: 3000, // Manutenção anual
         consumo_combustivel: 11, // Km/L
     };
 
-    let combustivel = {
+    let combustivelDefault = {
         valor: 5.80, // R$
     };
 
-    let taxaAplicativo = 10; // %
+    let taxaAplicativoDefault = 10; // %
+
+    // Variáveis que vão armazenar os dados ATUAIS do formulário
+    let automovel = { ...automovelDefault };
+    let combustivel = { ...combustivelDefault };
+    let taxaAplicativo = taxaAplicativoDefault;
 
     // --- Funções de Cálculo ---
+    // (Estas funções permanecem as mesmas, pois a lógica de cálculo já está correta)
     function calcularCustoVeiculo() {
         const depreciacaoAnual = (automovel.valor * automovel.depreciacao) / 100;
         const depreciacaoPorKm = automovel.km_mes ? depreciacaoAnual / (automovel.km_mes * 12) : 0;
@@ -55,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function calcularCustoTerceiros() {
         if (!automovel.km_mes) return 0;
-        const totalAnual = (automovel.licenciamento || 0) + (automovel.seguro || 0); // Usa automovel.licenciamento e automovel.seguro
+        const totalAnual = (automovel.licenciamento || 0) + (automovel.seguro || 0);
         const kmAnual = automovel.km_mes * 12;
         return kmAnual ? totalAnual / kmAnual : 0;
     }
@@ -73,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function calcularCustoOutros() {
         if (!automovel.km_mes) return 0;
         const kmAnual = automovel.km_mes * 12;
-        return kmAnual ? (automovel.outros || 0) / kmAnual : 0; // Usa automovel.outros
+        return kmAnual ? (automovel.outros || 0) / kmAnual : 0;
     }
 
     function calcularCustoLucro() {
@@ -101,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Funções de Sincronização e Eventos ---
 
-    // Atualiza os campos do HTML com os valores do estado
+    // Atualiza os campos do HTML com os valores do estado atual (automovel, combustivel, taxaAplicativo)
     function renderizarCampos() {
         inputs.taxaAplicativo.value = taxaAplicativo;
         inputs.kmMes.value = automovel.km_mes;
@@ -115,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         inputs.vidaUtilPneus.value = automovel.pneus_vida;
         inputs.custoOleo.value = automovel.oleo_custo;
         inputs.frequenciaOleo.value = automovel.oleo_frequencia;
-        inputs.manutencaoAnual.value = automovel.outros; // Renderiza para o ID correto
+        inputs.manutencaoAnual.value = automovel.outros;
         inputs.valorCombustivel.value = combustivel.valor;
         inputs.consumoCombustivel.value = automovel.consumo_combustivel;
 
@@ -128,29 +135,49 @@ document.addEventListener('DOMContentLoaded', () => {
         inputs.custoTotalKm.value = `R$ ${total.toFixed(2).replace('.', ',')}`;
     }
 
-    // Carrega dados do localStorage
+    // Carrega dados do localStorage ou usa defaults
     function carregarDados() {
         const savedAutomovel = localStorage.getItem('automovelData');
         const savedCombustivel = localStorage.getItem('combustivelData');
         const savedTaxa = localStorage.getItem('taxaAplicativo');
 
-        automovel = savedAutomovel ? JSON.parse(savedAutomovel) : { ...automovel };
-        combustivel = savedCombustivel ? JSON.parse(savedCombustivel) : { ...combustivel };
-        taxaAplicativo = savedTaxa ? parseFloat(savedTaxa) : taxaAplicativo;
+        // Se houver dados salvos, carrega. Caso contrário, usa os defaults definidos no script.
+        automovel = savedAutomovel ? JSON.parse(savedAutomovel) : { ...automovelDefault };
+        combustivel = savedCombustivel ? JSON.parse(savedCombustivel) : { ...combustivelDefault };
+        taxaAplicativo = savedTaxa ? parseFloat(savedTaxa) : taxaAplicativoDefault;
 
-        renderizarCampos();
+        renderizarCampos(); // Renderiza os dados carregados ou defaults na tela
     }
 
-    // Salva dados no localStorage
+    // Salva dados do localStorage
     function salvarDados() {
+        // Itera sobre os inputs e atualiza os objetos 'automovel', 'combustivel' e 'taxaAplicativo'
+        // com os valores ATUAIS do formulário antes de salvar.
+        taxaAplicativo = parseFloat(inputs.taxaAplicativo.value) || 0;
+        combustivel.valor = parseFloat(inputs.valorCombustivel.value) || 0;
+        automovel.consumo_combustivel = parseFloat(inputs.consumoCombustivel.value) || 0;
+        automovel.km_mes = parseFloat(inputs.kmMes.value) || 0;
+        automovel.valor = parseFloat(inputs.valorVeiculo.value) || 0;
+        automovel.depreciacao = parseFloat(inputs.depreciacao.value) || 0;
+        automovel.financiamento = parseFloat(inputs.financiamento.value) || 0;
+        automovel.lucro = parseFloat(inputs.lucroEsperado.value) || 0;
+        automovel.licenciamento = parseFloat(inputs.licenciamentoAnual.value) || 0;
+        automovel.seguro = parseFloat(inputs.seguroAnual.value) || 0;
+        automovel.pneus_custo = parseFloat(inputs.custoPneus.value) || 0;
+        automovel.vida_util_pneus = parseFloat(inputs.vidaUtilPneus.value) || 0; // Correção no nome da propriedade
+        automovel.oleo_custo = parseFloat(inputs.custoOleo.value) || 0;
+        automovel.oleo_frequencia = parseFloat(inputs.frequenciaOleo.value) || 0;
+        automovel.outros = parseFloat(inputs.manutencaoAnual.value) || 0;
+
+
         localStorage.setItem('automovelData', JSON.stringify(automovel));
         localStorage.setItem('combustivelData', JSON.stringify(combustivel));
         localStorage.setItem('taxaAplicativo', taxaAplicativo.toString());
         alert('Informações salvas com sucesso!');
+        atualizarCustoTotalDisplay(); // Re-calcula e exibe após salvar (garantia)
     }
 
     // --- Event Listeners ---
-
     // Adiciona listener para todos os campos de input
     Object.keys(inputs).forEach(key => {
         if (inputs[key] !== inputs.custoTotalKm) {
@@ -164,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                // Tratamento específico para cada ID que precisa de mapeamento diferente
+                // Ajusta os valores diretamente nos objetos automovel, combustivel e taxaAplicativo
                 switch (event.target.id) {
                     case 'taxaAplicativo':
                         taxaAplicativo = value;
@@ -179,18 +206,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         automovel.lucro = value;
                         break;
                     case 'licenciamentoAnual':
-                        automovel.licenciamento = value; // Corrigido o mapeamento
+                        automovel.licenciamento = value;
                         break;
                     case 'seguroAnual':
-                        automovel.seguro = value; // Corrigido o mapeamento
+                        automovel.seguro = value;
                         break;
                     case 'manutencaoAnual':
-                        automovel.outros = value; // Corrigido o mapeamento
+                        automovel.outros = value;
+                        break;
+                    case 'vidaUtilPneus': // Mapeamento correto
+                        automovel.pneus_vida = value;
                         break;
                     default:
-                        // Para os demais, tenta o mapeamento automático
                         const propName = event.target.id.replace(/([A-Z])/g, '_$1').toLowerCase();
-                        automovel[propName] = value;
+                        if (automovel.hasOwnProperty(propName)) { // Só atualiza se a propriedade existir
+                            automovel[propName] = value;
+                        }
                         break;
                 }
                 atualizarCustoTotalDisplay();
